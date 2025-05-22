@@ -1,0 +1,27 @@
+version: "2"
+
+run:
+  timeout: 1m
+
+linters:
+  enable:
+    - asciicheck
+    - dupl
+    - gocognit
+    - goconst
+    - gocritic
+    - gosec
+    - revive
+    - misspell
+
+  settings:
+    gosec:
+      excludes:
+        - G103
+    gocognit:
+      min-complexity: 10
+
+formatters:
+  enable:
+    - gofumpt
+    - goimports

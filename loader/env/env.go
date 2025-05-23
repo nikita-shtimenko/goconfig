@@ -54,7 +54,6 @@ func NewLoader[T any](envFiles []string, opts ...LoaderOption) (*Loader[T], erro
 
 // Load loads the configuration from environment variables and files
 func (l *Loader[T]) Load() (*T, error) {
-
 	// Load environment files using godotenv
 	for _, file := range l.envFiles {
 		if err := l.loadEnvFile(file); err != nil {

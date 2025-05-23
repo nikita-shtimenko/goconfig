@@ -64,7 +64,7 @@ func (l *Loader[T]) Load() (*T, error) {
 
 	// Parse into struct using caarlos0/env
 	var cfg T
-	if err := env.Parse(&cfg); err != nil {
+	if err := env.ParseWithOptions(&cfg, l.Options.EnvOptions); err != nil {
 		// Just wrap the error with some context - caarlos0/env already provides good error messages
 		return nil, fmt.Errorf("error parsing env variables into struct: %w", err)
 	}

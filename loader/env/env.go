@@ -11,14 +11,13 @@ import (
 	"errors"
 	"fmt"
 	"os"
-	"unsafe"
 
 	"github.com/caarlos0/env/v11"
 	"github.com/joho/godotenv"
 )
 
 var (
-	// ErrEnvFilesNotSpecified indicates that the NewLoader function was called with an empty envFiles array.
+	// ErrEnvFilesNotSpecified indicates that the NewLoader function was called with an empty Files array.
 	ErrEnvFilesNotSpecified = errors.New("env files not specified")
 
 	// ErrSourceNotFound indicates that the specified source (file, etc.) could not be found.
@@ -27,26 +26,24 @@ var (
 
 // Loader implements configuration loading from environment variables
 type Loader[T any] struct {
-	envFiles         []string
-	skipMissingFiles bool
+	Files   []string
+	Options Options
 }
 
 // NewLoader creates a new environment-based config loader
-func NewLoader[T any](envFiles []string, opts ...LoaderOption) (*Loader[T], error) {
-	if len(envFiles) == 0 {
+func NewLoader[T any](files []string, opts ...Option) (*Loader[T], error) {
+	if len(files) == 0 {
 		return nil, ErrEnvFilesNotSpecified
 	}
 
 	loader := &Loader[T]{
-		envFiles:         envFiles,
-		skipMissingFiles: false,
+		Files: files,
 	}
 
 	for _, opt := range opts {
-		// This type assertion works because Loader[T] and Loader[any]
-		// have the same field layout - we're just changing the type parameter
-		typedLoader := (*Loader[any])(unsafe.Pointer(loader))
-		opt(typedLoader)
+		if err := opt(&loader.Options); err != nil {
+			return nil, fmt.Errorf("error creating loader: invalid option: %w", err)
+		}
 	}
 
 	return loader, nil
@@ -55,9 +52,9 @@ func NewLoader[T any](envFiles []string, opts ...LoaderOption) (*Loader[T], erro
 // Load loads the configuration from environment variables and files
 func (l *Loader[T]) Load() (*T, error) {
 	// Load environment files using godotenv
-	for _, file := range l.envFiles {
+	for _, file := range l.Files {
 		if err := l.loadEnvFile(file); err != nil {
-			if l.skipMissingFiles && errors.Is(err, ErrSourceNotFound) {
+			if l.Options.SkipMissingFiles && errors.Is(err, ErrSourceNotFound) {
 				continue
 			}
 

@@ -1,5 +1,6 @@
 package env
 
+// Options defines a set of functional options for the environment loader
 type Options struct {
 	SkipMissingFiles bool
 }

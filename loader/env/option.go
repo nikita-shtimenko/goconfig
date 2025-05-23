@@ -1,11 +1,17 @@
 package env
 
-// LoaderOption defines a function that configures an Loader
-type LoaderOption func(*Loader[any])
+// Options defines a set of functional options for the environment loader
+type Options struct {
+	SkipMissingFiles bool
+}
 
-// WithSkipMissingFiles allows to not return an error on files that were specified but were not found
-func WithSkipMissingFiles() LoaderOption {
-	return func(l *Loader[any]) {
-		l.skipMissingFiles = true
+// Option defines a functional option for the environment loader
+type Option func(*Options) error
+
+// WithSkipMissingFiles configures the loader to skip missing .env files
+func WithSkipMissingFiles() Option {
+	return func(opts *Options) error {
+		opts.SkipMissingFiles = true
+		return nil
 	}
 }

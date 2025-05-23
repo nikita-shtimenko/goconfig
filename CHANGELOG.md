@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.1.0](https://github.com/nikita-shtimenko/goconfig/compare/v1.0.0...v1.1.0) (2025-05-23)
+
+
+### Features
+
+* **loader/env:** add WithEnvOptions for passing options to underlying env parser ([6958bd1](https://github.com/nikita-shtimenko/goconfig/commit/6958bd1442da84f2409b415ca95b0841664c9276))
+
 ## 1.0.0 (2025-05-22)
 
 

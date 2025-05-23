@@ -19,7 +19,7 @@ type testCase struct {
 	name           string
 	envContent     string
 	envFiles       []string
-	opts           []env.LoaderOption
+	opts           []env.Option
 	expectError    bool
 	expectedConfig *SampleConfig
 	errorContains  string
@@ -51,7 +51,9 @@ func TestLoader(t *testing.T) {
 				APP_NAME=skippy
 				PORT=3000
 			`,
-			opts: []env.LoaderOption{env.WithSkipMissingFiles()},
+			opts: []env.Option{
+				env.WithSkipMissingFiles(),
+			},
 			envFiles: []string{
 				"missing.env", // will be skipped
 			},
@@ -71,7 +73,7 @@ func TestLoader(t *testing.T) {
 			name:          "Invalid env values",
 			envContent:    "PORT=notanumber",
 			expectError:   true,
-			errorContains: "parsing env vars",
+			errorContains: "error parsing env variables into struct",
 		},
 	}
 

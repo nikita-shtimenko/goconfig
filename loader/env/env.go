@@ -17,8 +17,13 @@ import (
 	"github.com/joho/godotenv"
 )
 
-// ErrEnvFilesNotSpecified indicates that call to NewLoader function were made with empty envFiles array
-var ErrEnvFilesNotSpecified = errors.New("env files not specified")
+var (
+	// ErrEnvFilesNotSpecified indicates that the NewLoader function was called with an empty envFiles array.
+	ErrEnvFilesNotSpecified = errors.New("env files not specified")
+
+	// ErrSourceNotFound indicates that the specified source (file, etc.) could not be found.
+	ErrSourceNotFound = errors.New("source not found")
+)
 
 // Loader implements configuration loading from environment variables
 type Loader[T any] struct {
@@ -47,29 +52,40 @@ func NewLoader[T any](envFiles []string, opts ...LoaderOption) (*Loader[T], erro
 	return loader, nil
 }
 
-// Load loads environment variables into the generic configuration type
+// Load loads the configuration from environment variables and files
 func (l *Loader[T]) Load() (*T, error) {
-	var cfg T
 
+	// Load environment files using godotenv
 	for _, file := range l.envFiles {
-		// Check if file exists before attempting to load
-		if _, err := os.Stat(file); os.IsNotExist(err) {
-			if l.skipMissingFiles {
+		if err := l.loadEnvFile(file); err != nil {
+			if l.skipMissingFiles && errors.Is(err, ErrSourceNotFound) {
 				continue
 			}
 
 			return nil, fmt.Errorf("error loading env file %s: %w", file, err)
 		}
-
-		if err := godotenv.Load(file); err != nil {
-			return nil, fmt.Errorf("error loading env file %s: %w", file, err)
-		}
 	}
 
-	// Parse environment variables into the config struct
+	// Parse into struct using caarlos0/env
+	var cfg T
 	if err := env.Parse(&cfg); err != nil {
-		return nil, fmt.Errorf("error parsing env vars: %w", err)
+		// Just wrap the error with some context - caarlos0/env already provides good error messages
+		return nil, fmt.Errorf("error parsing env variables into struct: %w", err)
 	}
 
 	return &cfg, nil
+}
+
+// loadEnvFile loads environment variables from a .env file using godotenv
+func (l *Loader[T]) loadEnvFile(filename string) error {
+	if _, err := os.Stat(filename); os.IsNotExist(err) {
+		return ErrSourceNotFound
+	}
+
+	// Use godotenv to load the file
+	if err := godotenv.Load(filename); err != nil {
+		return fmt.Errorf("failed to load env file: %w", err)
+	}
+
+	return nil
 }
